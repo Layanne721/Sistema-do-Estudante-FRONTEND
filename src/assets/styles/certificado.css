@@ -1,0 +1,330 @@
+/* Arquivo de estilo unificado e corrigido.
+  Removidas as regras duplicadas e padronizados os estilos conflitantes.
+*/
+
+/* =================================
+   Estilos Globais e Estrutura
+   ================================= */
+.page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.page-header p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* =================================
+   Formulário
+   ================================= */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.image-preview img {
+  max-width: 100px;
+  margin-top: 1rem;
+  border-radius: 8px;
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* =================================
+   Lista de Certificados
+   ================================= */
+.certificados-list {
+  list-style: none;
+  padding: 0;
+}
+
+.certificado-item {
+  display: flex;
+  flex-direction: column; /* Estilo padrão para mobile */
+  align-items: flex-start;
+  text-align: left;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.cert-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.cert-image-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cert-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+.cert-details h3 {
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.cert-details p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.cert-actions {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.cert-actions button {
+  flex-grow: 1; /* Para botões ocuparem espaço igual em mobile */
+}
+
+
+/* =================================
+   Botões
+   ================================= */
+.btn-action {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: white;
+  transition: all 0.3s;
+  text-align: center;
+  text-decoration: none; /* Adicionado para links com a classe */
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-action:disabled {
+  background-color: #bdc3c7; /* Cor unificada para desabilitado */
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submit-button { background-color: var(--cor-principal); }
+.edit-button { background-color: var(--cor-destaque); }
+.delete-button { background-color: #e53e3e; }
+.cancel-button { background-color: #6c757d; }
+.report-button { background-color: #27ae60; } /* Cor unificada */
+
+/* =================================
+   Gráfico e Legenda
+   ================================= */
+.pie-chart-container {
+  display: flex;
+  flex-direction: column; /* Padrão para mobile */
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem; /* Espaçamento unificado */
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.legend-color {
+  width: 12px; /* Tamanho unificado */
+  height: 12px;
+  border-radius: 50%; /* Círculo */
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.no-data {
+  text-align: center;
+  color: #888;
+  padding: 2rem;
+}
+
+/* =================================
+   Feedback (Status, Observações, Avisos)
+   ================================= */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  text-transform: capitalize;
+}
+
+.status-pendente { background-color: #f39c12; }
+.status-aprovado { background-color: #27ae60; }
+.status-rejeitado { background-color: #e74c3c; }
+
+/* Caixa de observações com tema de aviso (amarelo) */
+.observacoes-box {
+  margin-top: 10px;
+  padding: 12px;
+  background-color: #fffbe6;
+  border-left: 4px solid #fadb14;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.observacoes-box strong {
+  color: #d46b08;
+}
+
+.observacoes-box p {
+  margin: 5px 0 0 0;
+  color: #555;
+}
+
+.mensagem-aviso {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.mensagem-aviso h1 {
+  color: var(--cor-destaque);
+}
+
+/* Estilo específico para o botão dentro da mensagem de aviso */
+.mensagem-aviso .btn-action {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #e9a2ac;
+}
+
+.mensagem-aviso .btn-action:hover {
+  background-color: #d6838f;
+  transform: translateY(-2px); /* Mantém o efeito de hover */
+}
+
+
+/* =================================
+   Responsividade (Telas Maiores)
+   ================================= */
+@media (min-width: 768px) {
+  .page-container {
+    padding: 2rem;
+  }
+  .page-header h1 {
+    font-size: 2.5rem;
+  }
+  .page-header p {
+    font-size: 1.1rem;
+  }
+  .card {
+    padding: 2rem;
+  }
+  .section-header h2 {
+    font-size: 1.5rem;
+  }
+  .form-actions {
+    flex-direction: row;
+  }
+  .form-actions .btn-action {
+    flex-grow: 0;
+  }
+  .pie-chart-container {
+    flex-direction: row;
+  }
+  .certificado-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cert-info {
+    width: auto;
+  }
+  .cert-actions {
+    width: auto;
+  }
+  .cert-actions button {
+    flex-grow: 0;
+  }
+}

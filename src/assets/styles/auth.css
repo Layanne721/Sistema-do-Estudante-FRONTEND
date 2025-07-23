@@ -1,0 +1,235 @@
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: var(--cor-fundo);
+}
+
+.form-wrapper {
+  background: var(--cor-branco);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.form-wrapper h1 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.form-wrapper p {
+  margin-bottom: 2rem;
+  color: var(--cor-texto);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  transition: border-color 0.3s;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--cor-principal);
+  outline: none;
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--cor-principal);
+  color: var(--cor-branco);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+  background-color: var(--cor-destaque);
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.mensagem {
+  margin-top: 1rem;
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.sucesso {
+  color: #155724;
+  background-color: #d4edda;
+}
+
+.erro {
+  color: #721c24;
+  background-color: #f8d7da;
+}
+
+.extra-links {
+  display: flex;
+  justify-content: center;
+
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.extra-links a {
+  padding: 2%;
+  color: var(--cor-destaque);
+  text-decoration: none;
+}
+
+/* Estilos para as telas de autenticação (Login, Registro, etc.) */
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+  background-color: var(--cor-fundo);
+}
+
+.form-wrapper {
+  background-color: var(--cor-branco);
+  padding: 2rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.form-wrapper h1 {
+  color: var(--cor-destaque);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+}
+
+.form-wrapper p {
+  margin-bottom: 2rem;
+  color: var(--cor-texto);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--cor-principal);
+  box-shadow: 0 0 0 3px rgba(248, 192, 200, 0.5);
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: var(--cor-destaque);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+button[type="submit"]:hover {
+  background-color: var(--cor-principal);
+  transform: translateY(-2px);
+}
+
+button[type="submit"]:disabled {
+  background-color: var(--cor-cinza);
+  cursor: not-allowed;
+  transform: translateY(0);
+}
+
+.mensagem {
+  margin-top: 1.5rem;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.mensagem.sucesso {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.mensagem.erro {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.extra-links {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.extra-links a {
+  color: var(--cor-destaque);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.extra-links a:hover {
+  text-decoration: underline;
+}
