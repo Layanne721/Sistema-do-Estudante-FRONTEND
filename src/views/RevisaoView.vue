@@ -75,7 +75,7 @@ onMounted(() => {
         <div class="card-content">
             <div class="cert-image-container">
               <a v-if="cert.fotoBase64" :href="cert.fotoBase64" target="_blank" title="Clique para abrir em nova aba">
-                <img :src="cert.fotoBase64" alt="Imagem do Certificado" class="cert-image">
+                <img :src="cert.fotoBase64" alt="click" class="cert-image">
               </a>
               <div v-else class="no-image-placeholder">Sem Imagem</div>
             </div>
