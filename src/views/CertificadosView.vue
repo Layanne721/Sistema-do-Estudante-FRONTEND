@@ -4,8 +4,13 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { store, fetchInitialData } from '../components/js/store.js';
 
+// --- Importações para geração de PDF no front-end ---
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
 const router = useRouter();
 const API_BASE_URL = 'http://localhost:8080/api/certificados';
+const NOME_DO_SITE = 'SEE | Sistema do Estudante |LC|';
 
 // --- Estados Gerais ---
 const error = ref(null);
@@ -93,12 +98,25 @@ const removerCertificadoDoLote = (id) => {
 const handleLoteFileUpload = (event, certId) => {
     const file = event.target.files[0];
     const cert = loteCertificados.value.find(c => c.id === certId);
-    if (file && cert) {
-        const reader = new FileReader();
-        reader.onload = (e) => { cert.fotoBase64 = e.target.result; };
-        reader.readAsDataURL(file);
+
+    if (!file || !cert) return;
+
+    // --- CORREÇÃO: VALIDAÇÃO DO TIPO DE ARQUIVO ---
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.some(type => file.type.startsWith(type.replace('*', '')))) {
+        error.value = `Tipo de arquivo inválido. Por favor, selecione apenas arquivos de imagem (JPG, PNG, etc.) ou PDF.`;
+        event.target.value = ''; 
+        return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (e) => { 
+        cert.fotoBase64 = e.target.result; 
+        error.value = null;
+    };
+    reader.readAsDataURL(file);
 };
+
 
 const handleSubmit = async () => {
     error.value = null;
@@ -191,22 +209,183 @@ const deleteCertificado = async (cert) => {
     }
 };
 
-// --- NOVA FUNÇÃO PARA GERAR CERTIFICADO ---
-const gerarCertificado = () => {
-    if (metaConcluida.value) {
-        // Lógica para chamar a API de geração de certificado
-        alert('Parabéns! Preparando seu certificado de conclusão para download...');
-        console.log('Iniciando processo de geração de certificado...');
-        // Exemplo: window.location.href = `${API_BASE_URL}/gerar-declaracao-final`;
+const gerarCertificado = async () => {
+    if (!metaConcluida.value) {
+        alert('Você ainda não atingiu a meta de horas para gerar o certificado.');
+        return;
+    }
+
+    try {
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const padding = 20;
+        let yPos = padding;
+
+        const approvedCertificates = store.certificados.filter(c => getNormalizedStatus(c.status) === 'APROVADO');
+        
+        const logoUrl = 'https://i.ibb.co/BHZck9sk/LOGO.png';
+
+        // --- 1. CAPA E DETALHES (páginas verticais) ---
+        // Seção da capa e detalhes do certificado... (sem alterações)
+        if (logoUrl) {
+            try {
+                const logoImage = new Image();
+                logoImage.crossOrigin = 'Anonymous';
+                logoImage.src = logoUrl;
+                await new Promise(resolve => {
+                    logoImage.onload = () => resolve();
+                    logoImage.onerror = () => { console.error('Erro ao carregar a imagem do logo.'); resolve(); };
+                });
+                const logoWidth = 30;
+                const logoHeight = logoImage.height * (logoWidth / logoImage.width);
+                pdf.addImage(logoImage, 'PNG', (pdfWidth - logoWidth) / 2, yPos, logoWidth, logoHeight, '', 'FAST');
+                yPos += logoHeight + 10;
+            } catch (e) {
+                console.error("Erro ao adicionar logo:", e);
+            }
+        }
+        
+        pdf.setFontSize(26);
+        pdf.setTextColor('#E9A2AC');
+        pdf.text('Certificado de Conclusão', pdfWidth / 2, yPos, { align: 'center' });
+        yPos += 20;
+
+        pdf.setFontSize(12);
+        pdf.setTextColor('#333333');
+        const studentName = store.user.nome || '________________________________________________';
+        const fullText = `Certificamos que o(a) Discente ${studentName} concluiu com sucesso as atividades complementares, totalizando ${totalHorasValidadas.value} horas.`;
+        const splitText = pdf.splitTextToSize(fullText, pdfWidth - padding * 2);
+        pdf.text(splitText, padding, yPos);
+        yPos += (splitText.length * 7) + 10;
+        
+        pdf.setFontSize(18);
+        pdf.setTextColor('#6A8D73');
+        pdf.text('Detalhes dos Certificados Aprovados', pdfWidth / 2, yPos, { align: 'center' });
+        yPos += 10;
+
+        pdf.setFontSize(10);
+        pdf.setTextColor('#555555');
+        const lineHeight = 5;
+        approvedCertificates.forEach((cert) => {
+            const certDetails = [
+                `• Título: ${cert.titulo}`,
+                `  Carga Horária: ${cert.cargaHoraria}h`,
+                `  Categoria: ${cert.modalidadeNome}`
+            ];
+            if (cert.observacoesProfessor) {
+                certDetails.push(`  Observação do Professor: ${cert.observacoesProfessor}`);
+            }
+            if (cert.professorNome && cert.dataRevisao) {
+                const dataAprovacao = new Date(cert.dataRevisao).toLocaleDateString('pt-BR');
+                certDetails.push(`  Aprovado por: ${cert.professorNome} em ${dataAprovacao}`);
+            }
+
+            let currentCertHeight = 0;
+            certDetails.forEach(line => {
+                currentCertHeight += pdf.splitTextToSize(line, pdfWidth - 2 * padding - 10).length * lineHeight;
+            });
+
+            if (yPos + currentCertHeight > pdfHeight - 60) {
+                pdf.addPage();
+                yPos = padding;
+                pdf.setFontSize(18);
+                pdf.setTextColor('#6A8D73');
+                pdf.text('Detalhes dos Certificados (continuação)', pdfWidth / 2, yPos, { align: 'center' });
+                yPos += 10;
+                pdf.setFontSize(10);
+                pdf.setTextColor('#555555');
+            }
+
+            certDetails.forEach(line => {
+                const lines = pdf.splitTextToSize(line, pdfWidth - 2 * padding - 10);
+                pdf.text(lines, padding + 5, yPos, { align: 'justify' });
+                yPos += lines.length * lineHeight;
+            });
+            yPos += 5;
+        });
+        
+        // --- 2. PÁGINAS INDIVIDUAIS DE COMPROVANTES (LÓGICA CORRIGIDA) ---
+        const totalComprovantes = approvedCertificates.filter(c => c.fotoBase64).length;
+        let comprovanteCounter = 1;
+        for (const cert of approvedCertificates) {
+            if (cert.fotoBase64) {
+                pdf.addPage('a4', 'landscape');
+                const landscapeWidth = pdf.internal.pageSize.getWidth();
+                const landscapeHeight = pdf.internal.pageSize.getHeight();
+                const imgPadding = 15;
+
+                pdf.setFontSize(18);
+                pdf.setTextColor('#333333');
+                pdf.text(`Comprovante ${comprovanteCounter++} de ${totalComprovantes}: ${cert.titulo}`, landscapeWidth / 2, imgPadding + 10, { align: 'center' });
+                pdf.setDrawColor('#E9A2AC');
+                pdf.setLineWidth(0.3);
+                pdf.line(imgPadding, imgPadding + 20, landscapeWidth - imgPadding, imgPadding + 20);
+
+                // SE FOR IMAGEM, RENDERIZA A IMAGEM
+                if (cert.fotoBase64.startsWith('data:image')) {
+                    const img = new Image();
+                    img.src = cert.fotoBase64;
+                    await new Promise(resolve => {
+                        img.onload = () => resolve();
+                        img.onerror = () => { console.error('Erro ao carregar imagem do comprovante:', cert.titulo); resolve(); };
+                    });
+
+                    const imgContentWidth = landscapeWidth - 2 * imgPadding;
+                    const imgContentHeight = landscapeHeight - 2 * imgPadding - 40;
+                    const aspectRatio = img.width / img.height;
+                    let newWidth, newHeight;
+
+                    if (aspectRatio > imgContentWidth / imgContentHeight) {
+                        newWidth = imgContentWidth;
+                        newHeight = imgContentWidth / aspectRatio;
+                    } else {
+                        newHeight = imgContentHeight;
+                        newWidth = imgContentHeight * aspectRatio;
+                    }
+
+                    const x = (landscapeWidth - newWidth) / 2;
+                    const y = (landscapeHeight - newHeight) / 2 + 10;
+                    
+                    pdf.addImage(img, 'JPEG', x, y, newWidth, newHeight, null, 'FAST');
+                
+                // SE FOR PDF, EXIBE UM PLACEHOLDER INFORMATIVO
+                } else if (cert.fotoBase64.startsWith('data:application/pdf')) {
+                    pdf.setFontSize(14);
+                    pdf.setTextColor('#555');
+                    const textYPos = landscapeHeight / 2 - 20;
+                    pdf.text('Este comprovante é um documento PDF.', landscapeWidth / 2, textYPos, { align: 'center' });
+                    pdf.text(`Título do Documento: ${cert.titulo}`, landscapeWidth / 2, textYPos + 10, { align: 'center' });
+                    pdf.text(`Carga Horária: ${cert.cargaHoraria}h`, landscapeWidth / 2, textYPos + 20, { align: 'center' });
+                    pdf.text('O arquivo original foi anexado no sistema.', landscapeWidth / 2, textYPos + 30, { align: 'center' });
+                
+                } else {
+                    pdf.setFontSize(14);
+                    pdf.setTextColor('#888');
+                    pdf.text(`Comprovante para "${cert.titulo}" com formato inválido.`, landscapeWidth / 2, landscapeHeight / 2, { align: 'center' });
+                }
+
+                pdf.line(imgPadding, landscapeHeight - imgPadding - 5, landscapeWidth - imgPadding, landscapeHeight - imgPadding - 5);
+                pdf.setFontSize(8);
+                pdf.setTextColor('#555555');
+                pdf.text(`Página ${pdf.internal.getNumberOfPages()}`, landscapeWidth - imgPadding, landscapeHeight - imgPadding, { align: 'right' });
+                pdf.text(`${NOME_DO_SITE} | ${cert.titulo}`, imgPadding, landscapeHeight - imgPadding);
+            }
+        }
+
+        const nomeDoArquivo = store.user.nome ? store.user.nome.split(' ')[0] : 'aluno';
+        pdf.save(`relatorio_atividades_complementares_${nomeDoArquivo}.pdf`);
+
+    } catch (e) {
+        console.error("Erro ao gerar certificado:", e);
+        alert('Erro ao gerar certificado. Verifique o console para mais detalhes.');
     }
 };
-
-
-const limiteHorasSubcategoria = computed(() => {
-    if (!subcategoriaSelecionadaId.value) return null;
-    const sub = subcategorias.value.find(s => s.id === subcategoriaSelecionadaId.value);
-    return sub ? sub.horas : null;
-});
 
 // --- Lógica de Status e Filtros ---
 const getNormalizedStatus = (status) => {
@@ -256,6 +435,11 @@ const certificadosFiltrados = computed(() => {
     });
 });
 
+const limiteHorasSubcategoria = computed(() => {
+    if (!subcategoriaSelecionadaId.value) return null;
+    const sub = subcategorias.value.find(s => s.id === subcategoriaSelecionadaId.value);
+    return sub ? sub.horas : null;
+});
 
 onMounted(async () => {
     await fetchModalidades();
@@ -464,17 +648,14 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* Importa o CSS base, que já deve conter os estilos de botões, etc. */
 @import '@/assets/styles/certificado.css';
 
-/* --- GERAL E LAYOUT --- */
 .page-container {
     display: flex;
     flex-direction: column;
     gap: 2rem;
 }
 
-/* --- Barra de Progresso --- */
 .summary-progress-card {
     background-color: #f8f9fa;
     border-left: 5px solid #E9A2AC;
@@ -527,14 +708,12 @@ onMounted(async () => {
     font-size: 0.9rem;
 }
 
-/* --- NOVO: Container do Botão Gerar Certificado --- */
 .action-footer {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid #e9ecef;
 }
 
-/* --- Resumo por Categoria --- */
 .category-summary-list {
     display: flex;
     flex-direction: column;
@@ -610,7 +789,6 @@ onMounted(async () => {
     }
 }
 
-/* --- Formulário Dinâmico --- */
 .form-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -683,9 +861,6 @@ onMounted(async () => {
     font-size: 3rem;
 }
 
-/* --- Estilos dos Botões --- */
-
-/* NOVO: Estilo para o botão de gerar certificado e seu estado desabilitado */
 .generate-button {
     width: 100%;
     background-color: #E9A2AC;
@@ -695,7 +870,7 @@ onMounted(async () => {
     transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 .generate-button:hover:not(:disabled) {
-    background-color: #d98fa0; /* Cor mais escura no hover */
+    background-color: #d98fa0;
 }
 .generate-button:disabled {
     background-color: #cccccc;
@@ -703,7 +878,6 @@ onMounted(async () => {
     cursor: not-allowed;
     opacity: 0.6;
 }
-
 
 .lote-item-remove-btn {
     background-color: #6a8d73;
@@ -726,9 +900,9 @@ onMounted(async () => {
 
 .add-button {
     background-color: #f4f4f4; 
-    color: #444;              
-    border: 1px solid #ddd;   
-    font-weight: 600;      
+    color: #444; 
+    border: 1px solid #ddd; 
+    font-weight: 600; 
 }
 
 .add-button:hover {
@@ -744,7 +918,6 @@ onMounted(async () => {
     flex-wrap: wrap;
 }
 
-/* --- Filtros da Lista --- */
 .filtros-container {
     display: flex;
     flex-wrap: wrap;
@@ -762,7 +935,6 @@ onMounted(async () => {
     min-width: 200px;
 }
 
-/* --- Lista de Certificados --- */
 .certificado-item {
     flex-direction: column;
 }
@@ -778,7 +950,6 @@ onMounted(async () => {
     justify-content: flex-end;
 }
 
-/* --- Estilos dos Status --- */
 .status-badge {
     padding: 0.35em 0.75em;
     border-radius: 20px;
@@ -792,16 +963,26 @@ onMounted(async () => {
 }
 
 .status-aprovado {
-    background-color: #28a745; /* Verde */
+    background-color: #28a745;
 }
 
 .status-reprovado {
-    background-color: #dc3545; /* Vermelho */
+    background-color: #dc3545;
 }
 
 .status-pendente {
-    background-color: #ffc107; /* Amarelo */
-    color: #212529; /* Texto escuro para melhor contraste */
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.mensagem.erro {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    text-align: center;
 }
 
 @media (min-width: 768px) {
