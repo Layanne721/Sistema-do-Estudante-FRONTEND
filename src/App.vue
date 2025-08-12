@@ -4,6 +4,11 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
 import { fetchInitialData, initAuth, logout, marcarAvisoComoLido, store } from './components/js/store.js';
 
+// --- CORREÇÃO ---
+// 1. Pegando a URL base da API do arquivo de ambiente (.env)
+// Isso torna o código flexível para desenvolvimento e produção.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const router = useRouter();
 const route = useRoute();
 
@@ -38,7 +43,9 @@ function fazerLogout() {
 async function checkBackendStatus() {
   checkingBackend.value = true;
   try {
-    await axios.get('http://localhost:8080/api/health');
+    // --- CORREÇÃO ---
+    // 2. Usando a variável para montar a URL completa da verificação de status.
+    await axios.get(`${API_BASE_URL}/api/health`);
     backendOnline.value = true;
   } catch (error) {
     console.error("Falha ao conectar com o backend:", error);
