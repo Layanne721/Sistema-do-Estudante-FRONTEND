@@ -3,7 +3,7 @@ import { computed, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { store, fetchInitialData } from '../components/js/store.js';
-
+import AvatarSelectorModal from '@/components/AvatarSelectorModal.vue';
 // --- Importações para o Gráfico (Visão do Aluno) ---
 import { Doughnut } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, CategoryScale } from 'chart.js';
@@ -133,7 +133,7 @@ const opcoesDoGrafico = ref({
 
 // --- Dados da Equipe de Desenvolvedores ---
 const teamMembers = ref([
-  { name: 'Liandra Lopes', id: 'liandra', imageUrl: 'https://i.ibb.co/KxfhXDkY/1.png' },
+  { name: 'Aliandra Lopes', id: 'liandra', imageUrl: 'https://i.ibb.co/KxfhXDkY/1.png' },
   { name: 'Izabel Yasmin', id: 'izabel', imageUrl: 'https://i.ibb.co/rG2QNDfG/2.png' },
   { name: 'Layanne Caetano', id: 'layanne', imageUrl: 'https://i.ibb.co/ZpHVKfHG/3.png' },
   { name: 'Sarah Cristina', id: 'sarah', imageUrl: 'https://i.ibb.co/wZt5cqR6/4.png' }

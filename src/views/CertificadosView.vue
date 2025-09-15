@@ -17,6 +17,7 @@ const error = ref(null);
 const progresso = ref(null);
 const modalidades = ref([]);
 const subcategorias = ref([]);
+const isSubmitting = ref(false); // <-- NOVO ESTADO: Controla o estado de envio
 
 // --- Estados do Formulário ---
 const modalidadeSelecionadaId = ref(null);
@@ -101,7 +102,6 @@ const handleLoteFileUpload = (event, certId) => {
 
     if (!file || !cert) return;
 
-    // --- CORREÇÃO: VALIDAÇÃO DO TIPO DE ARQUIVO ---
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.some(type => file.type.startsWith(type.replace('*', '')))) {
         error.value = `Tipo de arquivo inválido. Por favor, selecione apenas arquivos de imagem (JPG, PNG, etc.) ou PDF.`;
@@ -119,6 +119,8 @@ const handleLoteFileUpload = (event, certId) => {
 
 
 const handleSubmit = async () => {
+    if (isSubmitting.value) return; // <-- MUDANÇA 1: Previne cliques múltiplos
+
     error.value = null;
     if (!subcategoriaSelecionadaId.value) {
         error.value = "Selecione a modalidade e a atividade.";
@@ -135,6 +137,8 @@ const handleSubmit = async () => {
             return;
         }
     }
+
+    isSubmitting.value = true; // <-- MUDANÇA 2: Desabilita o botão
 
     try {
         if (editingCertId.value) {
@@ -162,6 +166,8 @@ const handleSubmit = async () => {
         await fetchProgresso();
     } catch (e) {
         error.value = e.response?.data?.error || e.response?.data?.message || 'Ocorreu um erro ao enviar.';
+    } finally {
+        isSubmitting.value = false; // <-- MUDANÇA 3: Reabilita o botão
     }
 };
 
@@ -232,7 +238,6 @@ const gerarCertificado = async () => {
         const logoUrl = 'https://i.ibb.co/BHZck9sk/LOGO.png';
 
         // --- 1. CAPA E DETALHES (páginas verticais) ---
-        // Seção da capa e detalhes do certificado... (sem alterações)
         if (logoUrl) {
             try {
                 const logoImage = new Image();
@@ -275,15 +280,15 @@ const gerarCertificado = async () => {
         approvedCertificates.forEach((cert) => {
             const certDetails = [
                 `• Título: ${cert.titulo}`,
-                `  Carga Horária: ${cert.cargaHoraria}h`,
-                `  Categoria: ${cert.modalidadeNome}`
+                `  Carga Horária: ${cert.cargaHoraria}h`,
+                `  Categoria: ${cert.modalidadeNome}`
             ];
             if (cert.observacoesProfessor) {
-                certDetails.push(`  Observação do Professor: ${cert.observacoesProfessor}`);
+                certDetails.push(`  Observação do Professor: ${cert.observacoesProfessor}`);
             }
             if (cert.professorNome && cert.dataRevisao) {
                 const dataAprovacao = new Date(cert.dataRevisao).toLocaleDateString('pt-BR');
-                certDetails.push(`  Aprovado por: ${cert.professorNome} em ${dataAprovacao}`);
+                certDetails.push(`  Aprovado por: ${cert.professorNome} em ${dataAprovacao}`);
             }
 
             let currentCertHeight = 0;
@@ -327,7 +332,6 @@ const gerarCertificado = async () => {
                 pdf.setLineWidth(0.3);
                 pdf.line(imgPadding, imgPadding + 20, landscapeWidth - imgPadding, imgPadding + 20);
 
-                // SE FOR IMAGEM, RENDERIZA A IMAGEM
                 if (cert.fotoBase64.startsWith('data:image')) {
                     const img = new Image();
                     img.src = cert.fotoBase64;
@@ -354,7 +358,6 @@ const gerarCertificado = async () => {
                     
                     pdf.addImage(img, 'JPEG', x, y, newWidth, newHeight, null, 'FAST');
                 
-                // SE FOR PDF, EXIBE UM PLACEHOLDER INFORMATIVO
                 } else if (cert.fotoBase64.startsWith('data:application/pdf')) {
                     pdf.setFontSize(14);
                     pdf.setTextColor('#555');
@@ -576,7 +579,10 @@ onMounted(async () => {
                 <div v-if="error" class="mensagem erro">{{ error }}</div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-action submit-button">{{ editingCertId ? 'Salvar Edição' : 'Enviar Certificados' }}</button>
+                    <!-- MUDANÇA 4: Botão agora usa o estado 'isSubmitting' -->
+                    <button type="submit" class="btn-action submit-button" :disabled="isSubmitting">
+                        {{ isSubmitting ? 'Enviando...' : (editingCertId ? 'Salvar Edição' : 'Enviar Certificados') }}
+                    </button>
                     <button type="button" @click="resetForm" class="btn-action cancel-button">
                         {{ editingCertId ? 'Cancelar Edição' : 'Limpar Tudo' }}
                     </button>
