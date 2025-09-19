@@ -11,7 +11,7 @@ import RedefinirSenhaView from '../views/RedefinirSenhaView.vue';
 import HomeView from '../views/HomeView.vue';
 import CertificadosView from '../views/CertificadosView.vue';
 import AvisosView from '../views/AvisosView.vue';
-import RevisaoView from '../views/RevisaoView.vue'; // Apenas uma importação é necessária
+import RevisaoView from '../views/RevisaoView.vue';
 import HistoricoView from '../views/HistoricoView.vue';
 import UsuariosView from '../views/UsuariosView.vue';
 import UsuarioCreateView from '../views/UsuarioCreateView.vue';
@@ -28,8 +28,9 @@ const router = createRouter({
     { path: '/registro', name: 'registro', component: RegistroView },
     { path: '/recuperar-senha', name: 'recuperar-senha', component: RecuperarSenhaView },
     { 
-      path: '/reset-password',
-      name: 'reset-password',
+      // <<< CORREÇÃO AQUI
+      path: '/resetar-senha', // Alterado de '/reset-password' para corresponder ao link do backend
+      name: 'resetar-senha',   // Alterado para manter a consistência
       component: RedefinirSenhaView
     },
     
@@ -61,7 +62,7 @@ const router = createRouter({
     {
       path: '/registro-revisoes',
       name: 'registro-revisoes',
-      component: RevisaoView, // Usando a importação original
+      component: RevisaoView,
       meta: { requiresAuth: true, role: 'PROFESSOR' }
     },
     {
@@ -90,7 +91,9 @@ const router = createRouter({
 
 // Guarda de Rota Global (Navigation Guard)
 router.beforeEach((to, from, next) => {
-  const publicPages = ['/login', '/registro', '/recuperar-senha', '/reset-password'];
+  // <<< CORREÇÃO AQUI
+  // Adicionado '/resetar-senha' à lista de páginas públicas
+  const publicPages = ['/login', '/registro', '/recuperar-senha', '/resetar-senha'];
   const authRequired = !publicPages.includes(to.path);
   const isLoggedIn = store.user.isLoggedIn;
 
@@ -105,8 +108,13 @@ router.beforeEach((to, from, next) => {
     }
   }
   
-  if (!authRequired && isLoggedIn) {
-    return next('/home');
+  // Se o usuário já está logado e tenta acessar uma página pública (exceto a de reset), redireciona para home
+  if (isLoggedIn && publicPages.includes(to.path)) {
+      if (to.path === '/resetar-senha') {
+        // Permite que um usuário logado acesse a página de reset, caso necessário
+        return next();
+      }
+      return next('/home');
   }
 
   next();

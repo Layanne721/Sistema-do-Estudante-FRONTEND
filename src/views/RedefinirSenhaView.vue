@@ -44,7 +44,8 @@ async function redefinirSenha() {
     };
 
     // Faz a chamada para o endpoint do backend que efetivamente redefine a senha
-    await axios.post('http://localhost:8080/auth/reset-password', payload);
+
+await axios.post('http://localhost:8080/auth/resetar-senha', payload);
     
     sucesso.value = 'Senha redefinida com sucesso! Você será redirecionado para o login em 3 segundos.';
     setTimeout(() => {
